@@ -64,7 +64,7 @@ export class KickSignUpPage extends BasePage {
       await this.fill("[name='email']", this.userConfig.email);
       await this.fill(
         "[name='birthdate']",
-        `${this.userConfig.birthday!.year}-${this.userConfig.birthday!.month.toString().padStart(2, "0")}-${this.userConfig.birthday!.day.toString().padStart(2, "0")}`,
+        `${this.userConfig.birthday!.day}${this.userConfig.birthday!.month}${this.userConfig.birthday!.year}`,
       );
       await this.fill("[name='password']", this.userConfig.password!);
       await this.fill("[name='username']", this.userConfig.username!);
@@ -111,8 +111,8 @@ export class KickSignUpPage extends BasePage {
 
     if (!this.userConfig.birthday) {
       this.userConfig.birthday = {
-        day: 25,
-        month: 1,
+        day: 10,
+        month: 12,
         year: 2000,
       };
     }

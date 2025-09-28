@@ -2,6 +2,7 @@ import { Page } from "playwright";
 import logger from "../../utils/logger.js";
 
 export abstract class BasePage {
+  private timeout: number = 5000;
   constructor(protected readonly page: Page) {}
 
   public abstract execute(): Promise<void>;
@@ -13,6 +14,12 @@ export abstract class BasePage {
     try {
       await this.page.waitForSelector(selector);
       logger.debug(`Кнопка с селектором ${selector} найдена.`);
+
+      await this.page.mouse.move(780, 800, { steps: 200 });
+
+      await this.page.hover(selector);
+      logger.debug(`Ведем курсор к кнопке с селектором ${selector}.`);
+
       await this.page.click(selector);
       logger.debug(`Кнопка с селектором ${selector} кликнута.`);
     } catch (e) {
@@ -25,9 +32,16 @@ export abstract class BasePage {
 
   protected async fill(selector: string, value: string): Promise<void> {
     try {
-      const input = await this.page.waitForSelector(selector);
+      await this.page.waitForSelector(selector);
       logger.debug(`Поле с селектором ${selector} найдено.`);
-      await input.fill(value);
+
+      await this.page.waitForTimeout(this.timeout);
+      await this.page.hover(selector);
+      logger.debug(`Ведем курсор к полю с селектором ${selector}.`);
+
+      await this.page.click(selector);
+
+      await this.page.type(selector, value, { delay: 200 });
       logger.debug(
         `Поле с селектором ${selector} заполнено значением ${value}.`,
       );

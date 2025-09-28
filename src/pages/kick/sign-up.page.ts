@@ -42,6 +42,8 @@ export class KickSignUpPage extends BasePage {
 
       const code = await gMailController.waitForNewKickCode();
       await this.fillCodeInput(code);
+
+      await this.acceptTerms();
     } catch (e: any) {
       this.handlerError(e);
     }
@@ -117,6 +119,15 @@ export class KickSignUpPage extends BasePage {
 
     if (!this.userConfig.username) {
       this.userConfig.username = UsernameGenerator.generate();
+    }
+  }
+
+  private async acceptTerms(): Promise<void> {
+    try {
+      await this.scroll("div[dir='ltr'].overflow-y-scroll");
+      await this.click("type='submit'");
+    } catch (e) {
+      throw e;
     }
   }
 

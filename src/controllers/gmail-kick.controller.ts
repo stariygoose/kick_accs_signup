@@ -71,11 +71,31 @@ class GMailController {
     try {
       this.checkCredentials();
 
-      return await gmail.getAccessToken(
-        process.env.CLIENT_ID!,
-        process.env.CLIENT_SECRET!,
-        process.env.REFRESH_TOKEN!,
-      );
+      const maxRetries = 3;
+      let lastError: any;
+
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          logger.info(`Attempting to get access token (attempt ${attempt}/${maxRetries})`);
+          
+          return await gmail.getAccessToken(
+            process.env.CLIENT_ID!,
+            process.env.CLIENT_SECRET!,
+            process.env.REFRESH_TOKEN!,
+          );
+        } catch (error: any) {
+          lastError = error;
+          logger.warn(`Access token attempt ${attempt} failed: ${error.message}`);
+          
+          if (attempt < maxRetries) {
+            const delayMs = attempt * 2000; // Progressive delay: 2s, 4s
+            logger.info(`Retrying in ${delayMs}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+          }
+        }
+      }
+
+      throw lastError;
     } catch (e) {
       throw e;
     }

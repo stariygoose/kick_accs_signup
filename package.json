@@ -19,9 +19,7 @@
   "dependencies": {
     "dotenv": "^17.2.2",
     "gmail-getter": "^2.3.1",
-    "playwright": "^1.55.1",
-    "playwright-extra": "^4.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "patchright": "^1.55.3",
     "winston": "^3.17.0"
   }
 }

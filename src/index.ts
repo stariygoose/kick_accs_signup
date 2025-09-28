@@ -1,15 +1,13 @@
 import "dotenv/config";
-import { chromium } from "playwright-extra";
-import stealth from "puppeteer-extra-plugin-stealth";
+import { chromium } from "patchright";
 import logger from "./utils/logger.js";
 import { KickSignUpPage } from "./pages/index.js";
-
-chromium.use(stealth());
 
 logger.info("Запускаем браузер...");
 
 const browser = await chromium.launch({
   headless: false,
+  channel: "chrome",
 });
 
 logger.info("Браузер успешно запущен.");

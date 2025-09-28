@@ -1,9 +1,9 @@
-import { Browser, Page } from "playwright";
 import { BasePage } from "../base/page.js";
 import logger from "../../utils/logger.js";
 import { UsernameGenerator } from "../../utils/username.generator.js";
 import { Code } from "../../types/types.js";
 import { gMailController } from "../../controllers/gmail-kick.controller.js";
+import { Browser, Page } from "patchright";
 
 interface SignUpUserConfig {
   email: string;
@@ -100,7 +100,6 @@ export class KickSignUpPage extends BasePage {
     if (!this.userConfig.password) {
       const defaultPasswod = process.env.DEFAULT_PASSWORD;
 
-      console.log(process.env);
       if (!defaultPasswod) {
         throw new Error(
           "Нужно добавить DEFAULT_PASSWORD в .env\nПример: DEFAULT_PASSWORD=password",

@@ -1,4 +1,4 @@
-import { Page } from "playwright";
+import { Page } from "patchright";
 import logger from "../../utils/logger.js";
 
 export abstract class BasePage {

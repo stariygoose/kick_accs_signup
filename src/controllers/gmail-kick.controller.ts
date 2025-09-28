@@ -1,12 +1,24 @@
 import gmail from "gmail-getter";
 import { Code, StoredCode } from "../types/types.js";
 import { isSixDigitsCode } from "../utils/isSixDigitsCode.js";
+import logger from "../utils/logger.js";
 
 class GMailController {
-  private _lastCode: StoredCode | null = null;
+  private _lastCode: StoredCode;
   private readonly _emailKick = "noreply@email.kick.com";
 
-  get lastCode(): StoredCode | null {
+  private constructor(_lastCode: Code) {
+    this._lastCode = { value: _lastCode, __newCode: false };
+  }
+
+  static async build(): Promise<GMailController> {
+    const tempGMailController = new GMailController("000000" as Code);
+
+    const code = await tempGMailController.checkLastKickCodeMessage();
+    return new GMailController(code);
+  }
+
+  get lastCode(): StoredCode {
     return this._lastCode;
   }
 
@@ -24,7 +36,7 @@ class GMailController {
 
       const sixDigitsCode = isSixDigitsCode(code[0]);
 
-      this._lastCode?.value === sixDigitsCode
+      this._lastCode.value === sixDigitsCode
         ? (this._lastCode = { value: sixDigitsCode, __newCode: false })
         : (this._lastCode = { value: sixDigitsCode, __newCode: true });
 
@@ -32,6 +44,27 @@ class GMailController {
     } catch (e) {
       throw e;
     }
+  }
+
+  public async waitForNewKickCode(timeoutMs: number = 300000): Promise<Code> {
+    const startTime = Date.now();
+    const initialCode = this._lastCode.value;
+
+    while (Date.now() - startTime < timeoutMs) {
+      try {
+        const code = await this.checkLastKickCodeMessage();
+
+        if (this._lastCode.__newCode && code !== initialCode) {
+          return code;
+        }
+      } catch (error: any) {
+        logger.warn(`Ошибка пока проверяем новый код: ${error.message}`);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+
+    throw new Error(`Timeout waiting for new Kick code after ${timeoutMs}ms`);
   }
 
   private async generateAccessToken(): Promise<string> {
@@ -64,4 +97,4 @@ class GMailController {
   }
 }
 
-export const gMailController = new GMailController();
+export const gMailController = await GMailController.build();

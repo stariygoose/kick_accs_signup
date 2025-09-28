@@ -40,8 +40,7 @@ export class KickSignUpPage extends BasePage {
 
       this.page.waitForTimeout(1000);
 
-      const code = await gMailController.checkLastKickCodeMessage();
-      // TODO: get code from gmail
+      const code = await gMailController.waitForNewKickCode();
       await this.fillCodeInput(code);
     } catch (e: any) {
       this.handlerError(e);

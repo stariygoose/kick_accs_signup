@@ -1,9 +1,10 @@
 import "dotenv/config";
 import { chromium } from "patchright";
 import logger from "./utils/logger.js";
-import { KickSignUpPage } from "./pages/index.js";
+import { FollowStreamerPage, KickSignUpPage } from "./pages/index.js";
 
 logger.info("Запускаем браузер...");
+const streamers = ["zloyn", "lord-treputin", "klp666", "zubarefff"];
 
 const browser = await chromium.launch({
   headless: false,
@@ -12,13 +13,19 @@ const browser = await chromium.launch({
 
 logger.info("Браузер успешно запущен.");
 
-const signUpPage = await KickSignUpPage.build(browser, {
-  email: "xweqixms@gmail.com",
-  username: "xweqixms",
-});
+const page = await browser.newPage();
 
+const signUpPage = await KickSignUpPage.build(page, {
+  email: "mixes-newt-4d@icloud.com",
+  username: "mixes_new_228",
+});
 await signUpPage.execute();
 
-await signUpPage.waitForTimeout(100000);
+for (const streamer of streamers) {
+  const followPage = await FollowStreamerPage.build(page, streamer);
+  await followPage.execute();
+}
+
+signUpPage.waitForTimeout(100000);
 
 await browser.close();

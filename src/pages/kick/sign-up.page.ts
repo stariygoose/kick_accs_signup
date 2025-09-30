@@ -24,10 +24,9 @@ export class KickSignUpPage extends BasePage {
   }
 
   static async build(
-    browser: Browser,
+    page: Page,
     config: SignUpUserConfig,
   ): Promise<KickSignUpPage> {
-    const page = await browser.newPage();
     return new KickSignUpPage(page, config);
   }
 
@@ -44,6 +43,10 @@ export class KickSignUpPage extends BasePage {
       await this.fillCodeInput(code);
 
       await this.acceptTerms();
+
+      logger.info(
+        `Регистрация завершена для юзера <${this.userConfig.email}: ${this.userConfig.username}>`,
+      );
     } catch (e: any) {
       this.handlerError(e);
     }
@@ -125,7 +128,8 @@ export class KickSignUpPage extends BasePage {
   private async acceptTerms(): Promise<void> {
     try {
       await this.scroll("div[dir='ltr'].overflow-y-scroll");
-      await this.click("type='submit'");
+      await this.click('button:has-text("I accept")');
+      await this.click('button:has-text("Get Started")');
     } catch (e) {
       throw e;
     }

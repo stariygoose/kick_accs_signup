@@ -28,7 +28,7 @@ class GMailController {
 
       const email = await gmail.checkInbox({
         token: accessToken,
-        query: `from:${this._emailKick}`,
+        query: `subject:Sign Up Verification Code`,
       });
 
       const code = email.snippet.match(/\d{6}/);
@@ -76,8 +76,10 @@ class GMailController {
 
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          logger.info(`Attempting to get access token (attempt ${attempt}/${maxRetries})`);
-          
+          logger.debug(
+            `Attempting to get access token (attempt ${attempt}/${maxRetries})`,
+          );
+
           return await gmail.getAccessToken(
             process.env.CLIENT_ID!,
             process.env.CLIENT_SECRET!,
@@ -85,12 +87,14 @@ class GMailController {
           );
         } catch (error: any) {
           lastError = error;
-          logger.warn(`Access token attempt ${attempt} failed: ${error.message}`);
-          
+          logger.warn(
+            `Access token attempt ${attempt} failed: ${error.message}`,
+          );
+
           if (attempt < maxRetries) {
             const delayMs = attempt * 2000; // Progressive delay: 2s, 4s
-            logger.info(`Retrying in ${delayMs}ms...`);
-            await new Promise(resolve => setTimeout(resolve, delayMs));
+            logger.warn(`Retrying in ${delayMs}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
           }
         }
       }

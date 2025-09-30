@@ -59,17 +59,22 @@ export abstract class BasePage {
           const computedStyle = window.getComputedStyle(el);
           const overflowY = computedStyle.overflowY;
           const hasVerticalScrollbar = el.scrollHeight > el.clientHeight;
-          const canScroll = ['scroll', 'auto'].includes(overflowY) || overflowY === 'overlay';
-          
+          const canScroll =
+            ["scroll", "auto"].includes(overflowY) || overflowY === "overlay";
+
           return hasVerticalScrollbar && canScroll;
         }
 
-        function findBestScrollableElement(container: HTMLElement): HTMLElement {
+        function findBestScrollableElement(
+          container: HTMLElement,
+        ): HTMLElement {
           if (isScrollable(container)) {
             return container;
           }
 
-          const allElements = Array.from(container.querySelectorAll<HTMLElement>("*"));
+          const allElements = Array.from(
+            container.querySelectorAll<HTMLElement>("*"),
+          );
           let bestElement = container;
           let maxScrollableArea = 0;
 
@@ -87,9 +92,11 @@ export abstract class BasePage {
         }
 
         const scrollEl = findBestScrollableElement(root as HTMLElement);
-        
+
         if (!isScrollable(scrollEl)) {
-          console.warn('No scrollable element found, falling back to scrollTop assignment');
+          console.warn(
+            "No scrollable element found, falling back to scrollTop assignment",
+          );
           scrollEl.scrollTop = scrollEl.scrollHeight;
           return;
         }
@@ -104,17 +111,19 @@ export abstract class BasePage {
         ) {
           scrollEl.scrollBy(0, step);
           await sleep(delay);
-          
+
           if (scrollEl.scrollTop === lastScrollTop) {
             samePositionCount++;
             if (samePositionCount >= 3) {
-              console.warn('Scroll position not changing, breaking out of loop');
+              console.warn(
+                "Scroll position not changing, breaking out of loop",
+              );
               break;
             }
           } else {
             samePositionCount = 0;
           }
-          
+
           lastScrollTop = scrollEl.scrollTop;
         }
 

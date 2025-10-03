@@ -32,7 +32,7 @@ class GMailController {
       });
 
       const code = email.snippet.match(/\d{6}/);
-      if (!code) throw new Error("No code found in email");
+      if (!code) throw new Error("Код не найден в письме");
 
       const sixDigitsCode = isSixDigitsCode(code[0]);
 
@@ -58,13 +58,13 @@ class GMailController {
           return code;
         }
       } catch (error: any) {
-        logger.warn(`Ошибка пока проверяем новый код: ${error.message}`);
+        logger.warn(`Ошибка при проверке нового кода: ${error.message}`);
       }
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
 
-    throw new Error(`Timeout waiting for new Kick code after ${timeoutMs}ms`);
+    throw new Error(`Таймаут ожидания нового кода от Kick после ${timeoutMs}мс`);
   }
 
   private async generateAccessToken(): Promise<string> {
@@ -77,7 +77,7 @@ class GMailController {
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           logger.debug(
-            `Attempting to get access token (attempt ${attempt}/${maxRetries})`,
+            `Попытка получить токен доступа (попытка ${attempt}/${maxRetries})`,
           );
 
           return await gmail.getAccessToken(
@@ -88,12 +88,12 @@ class GMailController {
         } catch (error: any) {
           lastError = error;
           logger.warn(
-            `Access token attempt ${attempt} failed: ${error.message}`,
+            `Попытка получения токена доступа ${attempt} не удалась: ${error.message}`,
           );
 
           if (attempt < maxRetries) {
             const delayMs = attempt * 2000; // Progressive delay: 2s, 4s
-            logger.warn(`Retrying in ${delayMs}ms...`);
+            logger.warn(`Повторная попытка через ${delayMs}мс...`);
             await new Promise((resolve) => setTimeout(resolve, delayMs));
           }
         }
@@ -108,15 +108,15 @@ class GMailController {
   private checkCredentials(): void {
     if (!process.env.CLIENT_ID)
       throw new Error(
-        "No CLIENT_ID provided in .env\nCan be found in credentials.json",
+        "Не указан CLIENT_ID в .env\nМожно найти в credentials.json",
       );
     if (!process.env.CLIENT_SECRET)
       throw new Error(
-        "No CLIENT_SECRET provided in .env\nCan be found in credentials.json",
+        "Не указан CLIENT_SECRET в .env\nМожно найти в credentials.json",
       );
     if (!process.env.REFRESH_TOKEN)
       throw new Error(
-        "No REFRESH_TOKEN provided in .env\nHave to run: npx gmail-getter get-refresh-token",
+        "Не указан REFRESH_TOKEN в .env\nНеобходимо выполнить: npx gmail-getter get-refresh-token",
       );
   }
 }

@@ -1,26 +1,18 @@
+import { Page } from "patchright";
+
 import { BasePage } from "../base/page.js";
 import logger from "../../utils/logger.js";
 import { UsernameGenerator } from "../../utils/username.generator.js";
-import { Code } from "../../types/types.js";
+import { Code, SignUpUserConfig } from "../../types/types.js";
 import { gMailController } from "../../controllers/gmail-kick.controller.js";
-import { Browser, Page } from "patchright";
-
-interface SignUpUserConfig {
-  email: string;
-  username?: string;
-  birthday?: { day: number; month: number; year: number };
-  password?: string;
-}
 
 export class KickSignUpPage extends BasePage {
-  private readonly URL: string = "https://kick.com/";
-
   private constructor(
     page: Page,
     private readonly userConfig: SignUpUserConfig,
   ) {
     super(page);
-    logger.debug("KickSignUpPage created");
+    logger.debug("Страница регистрации на Kick создана");
   }
 
   static async build(
@@ -36,10 +28,10 @@ export class KickSignUpPage extends BasePage {
       await this.clickSignUpButton();
       await this.enterInputs();
       await this.sendRegistrationForm();
-
-      this.page.waitForTimeout(1000);
+      logger.info("Поля заполнены переходим на код.");
 
       const code = await gMailController.waitForNewKickCode();
+      logger.info("Получен код подтверждения");
       await this.fillCodeInput(code);
 
       await this.acceptTerms();
@@ -56,6 +48,7 @@ export class KickSignUpPage extends BasePage {
     try {
       await this.page.goto(this.URL);
       await this.click("[data-testid='sign-up']");
+      logger.info("Нажата кнопка регистрации");
     } catch (e: any) {
       throw e;
     }
@@ -68,10 +61,11 @@ export class KickSignUpPage extends BasePage {
       await this.fill("[name='email']", this.userConfig.email);
       await this.fill(
         "[name='birthdate']",
-        `${this.userConfig.birthday!.day}${this.userConfig.birthday!.month}${this.userConfig.birthday!.year}`,
+        `${this.userConfig.birthday!.year}-${this.userConfig.birthday!.month.toString().padStart(2, "0")}-${this.userConfig.birthday!.day.toString().padStart(2, "0")}`,
       );
       await this.fill("[name='password']", this.userConfig.password!);
       await this.fill("[name='username']", this.userConfig.username!);
+      logger.info("Форма регистрации заполнена");
     } catch (e: any) {
       logger.error("Не удалось заполнить поля для регистрации юзера.");
       throw e;
@@ -81,7 +75,13 @@ export class KickSignUpPage extends BasePage {
   private async sendRegistrationForm(): Promise<void> {
     try {
       await this.click("[data-testid='sign-up-submit']");
-    } catch (e) {
+      logger.info("Форма регистрации отправлена");
+
+      await this.page.waitForTimeout(2000);
+
+      await this.click("[data-testid='sign-up-submit']");
+      logger.info("Повторный клик кнопки регистрации выполнен");
+    } catch (e: any) {
       logger.error("Не удалось отправить форму регистрации.");
       throw e;
     }
@@ -90,6 +90,7 @@ export class KickSignUpPage extends BasePage {
   private async fillCodeInput(code: Code): Promise<void> {
     try {
       await this.fill("[name='code']", code);
+      logger.info("Код подтверждения введен");
     } catch (e) {
       logger.error("Не удалось заполнить поле для ввода кода.");
       throw e;
@@ -98,7 +99,7 @@ export class KickSignUpPage extends BasePage {
 
   private checkIsConfigExists(): void {
     if (!this.userConfig.email) {
-      throw new Error("Email is required");
+      throw new Error("Необходимо указать email");
     }
 
     if (!this.userConfig.password) {
@@ -130,6 +131,7 @@ export class KickSignUpPage extends BasePage {
       await this.scroll("div[dir='ltr'].overflow-y-scroll");
       await this.click('button:has-text("I accept")');
       await this.click('button:has-text("Get Started")');
+      logger.info("Условия приняты и регистрация завершена");
     } catch (e) {
       throw e;
     }

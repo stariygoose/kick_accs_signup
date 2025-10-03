@@ -3,11 +3,9 @@ import logger from "../../utils/logger.js";
 import { BasePage } from "../base/page.js";
 
 export class FollowStreamerPage extends BasePage {
-  private readonly URL: string;
-  private constructor(page: Page, streamer: string) {
+  private constructor(page: Page, private readonly streamer: string) {
     super(page);
-    this.URL = `https://kick.com/${streamer}`;
-    logger.debug("FollowStreamerPage created");
+    logger.debug("Страница подписки на стримера создана");
   }
 
   static async build(
@@ -20,8 +18,9 @@ export class FollowStreamerPage extends BasePage {
   public async execute(): Promise<void> {
     logger.debug("Начинаем подписку на стримера");
     try {
-      await this.page.goto(this.URL);
+      await this.page.goto(`${this.URL}${this.streamer}`);
       await this.click("[data-testid='follow-button']");
+      logger.info(`Подписались на стримера ${this.streamer}`);
     } catch (e: any) {
       logger.error(e.message);
       throw e;

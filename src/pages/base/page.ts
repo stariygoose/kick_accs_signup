@@ -41,6 +41,48 @@ export abstract class BasePage {
     }
   }
 
+  protected async clickWhenActive(selector: string): Promise<void> {
+    try {
+      const locator = this.page.locator(selector);
+
+      // Ждем появления в DOM и видимости
+      await locator.waitFor({ state: "visible", timeout: 10000 });
+      logger.debug(`Элемент ${selector} появился и видим.`);
+
+      // Ждем пока будет enabled
+      await this.page.waitForFunction(
+        (el) => !el?.hasAttribute("disabled"),
+        await locator.elementHandle(),
+        { timeout: 10000 },
+      );
+      logger.debug(`Элемент ${selector} активен.`);
+
+      // Скроллим к элементу (на случай если вне видимой области)
+      await locator.scrollIntoViewIfNeeded();
+
+      // Проверяем есть ли у элемента размер и он кликабелен
+      const box = await locator.boundingBox();
+      if (!box || box.width === 0 || box.height === 0) {
+        throw new Error(
+          `Элемент ${selector} существует, но некликабелен (bbox 0).`,
+        );
+      }
+
+      // Дополнительное ожидание стабильности позиции
+      await locator.waitFor({ state: "attached" });
+      await locator.waitFor({ state: "visible" });
+
+      // Наконец клик
+      await locator.click({ timeout: 5000 });
+      logger.debug(`Элемент ${selector} успешно кликнут.`);
+    } catch (e) {
+      logger.error(
+        `Не удалось выполнить безопасный клик по ${selector}: ${(e as Error).message}`,
+      );
+      throw e;
+    }
+  }
+
   protected async scroll(
     selector: string,
     opts?: { step?: number; timeoutMs?: number; delay?: number },

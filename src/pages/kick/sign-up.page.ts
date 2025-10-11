@@ -1,6 +1,5 @@
 import { BasePage } from "../base/page.js";
 import logger from "../../utils/logger.js";
-import { UsernameGenerator } from "../../utils/username.generator.js";
 import { Code } from "../../types/types.js";
 import { gMailController } from "../../controllers/gmail-kick.controller.js";
 import { Browser, Page } from "patchright";
@@ -121,14 +120,16 @@ export class KickSignUpPage extends BasePage {
     }
 
     if (!this.userConfig.username) {
-      this.userConfig.username = UsernameGenerator.generate();
+      throw new Error(
+        `Нужно обязательно написать ник в файле конфиге для ${this.userConfig.email}`,
+      );
     }
   }
 
   private async acceptTerms(): Promise<void> {
     try {
       await this.scroll("div[dir='ltr'].overflow-y-scroll");
-      await this.click('button:has-text("I accept")');
+      await this.clickWhenActive('button:has-text("I accept")');
       await this.click('button:has-text("Get Started")');
     } catch (e) {
       throw e;

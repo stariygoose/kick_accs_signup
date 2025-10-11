@@ -5,7 +5,6 @@ import logger from "../utils/logger.js";
 
 class GMailController {
   private _lastCode: StoredCode;
-  private readonly _emailKick = "noreply@email.kick.com";
 
   private constructor(_lastCode: Code) {
     this._lastCode = { value: _lastCode, __newCode: false };

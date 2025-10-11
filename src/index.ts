@@ -2,6 +2,7 @@ import "dotenv/config";
 import { chromium } from "patchright";
 import logger from "./utils/logger.js";
 import { FollowStreamerPage, KickSignUpPage } from "./pages/index.js";
+import { GetAccessTokenPage } from "./pages/kick/get-access-token.page.js";
 
 logger.info("Запускаем браузер...");
 const streamers = ["zloyn", "lord-treputin", "klp666", "zubarefff"];
@@ -16,8 +17,8 @@ logger.info("Браузер успешно запущен.");
 const page = await browser.newPage();
 
 const signUpPage = await KickSignUpPage.build(page, {
-  email: "mixes-newt-4d@icloud.com",
-  username: "mixes_new_228",
+  email: "dabs.thaws4o@icloud.com",
+  username: "dabs22814881337",
 });
 await signUpPage.execute();
 
@@ -26,6 +27,9 @@ for (const streamer of streamers) {
   await followPage.execute();
 }
 
-signUpPage.waitForTimeout(100000);
+const getAccessPage = await GetAccessTokenPage.build(page, "dabs22814881337");
+await getAccessPage.execute();
+
+await signUpPage.waitForTimeout(100000);
 
 await browser.close();

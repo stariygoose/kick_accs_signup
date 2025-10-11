@@ -13,12 +13,14 @@
     "token": "npx gmail-getter get-refresh-token"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.5.2",
     "typescript": "^5.9.2"
   },
   "dependencies": {
     "dotenv": "^17.2.2",
     "gmail-getter": "^2.3.1",
+    "js-yaml": "^4.1.0",
     "patchright": "^1.55.3",
     "winston": "^3.17.0"
   }

@@ -3,33 +3,62 @@ import { chromium } from "patchright";
 import logger from "./utils/logger.js";
 import { FollowStreamerPage, KickSignUpPage } from "./pages/index.js";
 import { GetAccessTokenPage } from "./pages/kick/get-access-token.page.js";
+import { readUsersFromYaml } from "./utils/yaml-reader.js";
+import { appendTokenToFile } from "./utils/token-writer.js";
+import { removeUserFromYaml } from "./utils/yaml-writer.js";
+import path from "path";
 
-logger.info("Запускаем браузер...");
+logger.info("Загружаем пользователей из users.yml...");
+const usersFilePath = path.join(process.cwd(), "users.yml");
+const tokensFilePath = path.join(process.cwd(), "tokens.txt");
+const usersConfig = readUsersFromYaml(usersFilePath);
+const users = usersConfig.users;
+
 const streamers = ["zloyn", "lord-treputin", "klp666", "zubarefff"];
 
-const browser = await chromium.launch({
-  headless: false,
-  channel: "chrome",
-});
+for (const user of users) {
+  logger.info(
+    `Начинаем обработку пользователя: ${user.username} (${user.email})`,
+  );
 
-logger.info("Браузер успешно запущен.");
+  try {
+    logger.info("Запускаем браузер...");
+    const browser = await chromium.launch({
+      headless: false,
+      channel: "chrome",
+    });
 
-const page = await browser.newPage();
+    logger.info("Браузер успешно запущен.");
 
-const signUpPage = await KickSignUpPage.build(page, {
-  email: "dabs.thaws4o@icloud.com",
-  username: "dabs22814881337",
-});
-await signUpPage.execute();
+    const page = await browser.newPage();
 
-for (const streamer of streamers) {
-  const followPage = await FollowStreamerPage.build(page, streamer);
-  await followPage.execute();
+    const signUpPage = await KickSignUpPage.build(page, {
+      email: user.email,
+      username: user.username,
+    });
+    await signUpPage.execute();
+
+    for (const streamer of streamers) {
+      const followPage = await FollowStreamerPage.build(page, streamer);
+      await followPage.execute();
+    }
+
+    const getAccessPage = await GetAccessTokenPage.build(page, user.username);
+    const token = await getAccessPage.execute();
+
+    await browser.close();
+
+    // Записываем токен в файл
+    appendTokenToFile(tokensFilePath, user.username, token);
+
+    // Удаляем пользователя из users.yml после успешного сохранения токена
+    removeUserFromYaml(usersFilePath, user.username);
+
+    logger.info(`Завершена обработка пользователя: ${user.username}`);
+  } catch (error) {
+    logger.error(
+      `Ошибка при обработке пользователя ${user.username}: ${error}`,
+    );
+    // Не удаляем пользователя из списка в случае ошибки
+  }
 }
-
-const getAccessPage = await GetAccessTokenPage.build(page, "dabs22814881337");
-await getAccessPage.execute();
-
-await signUpPage.waitForTimeout(100000);
-
-await browser.close();

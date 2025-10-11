@@ -2,7 +2,7 @@ import { Page } from "patchright";
 import logger from "../../utils/logger.js";
 import { BasePage } from "../base/page.js";
 
-export class GetAccessTokenPage extends BasePage {
+export class GetAccessTokenPage extends BasePage<string> {
   private constructor(
     page: Page,
     private readonly user: string,
@@ -18,6 +18,8 @@ export class GetAccessTokenPage extends BasePage {
     return new GetAccessTokenPage(previousPage, streamer);
   }
 
+  private capturedToken: string | null = null;
+
   private setupRequestListener(): void {
     this.page.on("request", (request) => {
       const url = request.url();
@@ -29,18 +31,21 @@ export class GetAccessTokenPage extends BasePage {
 
         if (authHeader) {
           const token = authHeader.split(" ")[1];
+          this.capturedToken = token;
           logger.info(`Access Token: ${token}`);
         }
       }
     });
   }
 
-  public async execute(): Promise<void> {
+  public async execute(): Promise<string> {
     logger.debug("Начинаем получение access token");
     try {
       this.setupRequestListener();
 
-      await this.page.goto(`https://kick.com/${this.user}`);
+      // Конвертируем username в URL формат (заменяем _ на -)
+      const urlUsername = this.user.replace(/_/g, "-");
+      await this.page.goto(`https://kick.com/${urlUsername}`);
 
       await this.click("[data-testid='accept-cookies']");
 
@@ -51,7 +56,15 @@ export class GetAccessTokenPage extends BasePage {
       await this.click('[id="send-message-button"]');
       logger.debug("Отправили сообщение");
 
+      // Ждем, пока токен будет захвачен
+      await this.page.waitForTimeout(2000);
+
+      if (!this.capturedToken) {
+        throw new Error("Не удалось получить access token");
+      }
+
       logger.info(`Получили access token для юзера ${this.user}`);
+      return this.capturedToken;
     } catch (e: any) {
       logger.error(e.message);
       throw e;

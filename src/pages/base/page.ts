@@ -2,7 +2,6 @@ import { Page } from "patchright";
 import logger from "../../utils/logger.js";
 
 export abstract class BasePage {
-  private timeout: number = 5000;
   constructor(protected readonly page: Page) {}
 
   public abstract execute(): Promise<void>;
